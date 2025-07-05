@@ -1,44 +1,39 @@
-version: '3.8'
+version: '3.9'
 
 services:
   mysql_prod:
     image: mysql:8.0
-    container_name: mysql_prod
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: prod_pass
-      MYSQL_DATABASE: telco_db
     ports:
-      - "3307:3306"
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: telco_db
     volumes:
-      - mysql_prod_data:/var/lib/mysql
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
 
-  api:
+  telco_api_prod:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-    container_name: telco_api_prod
-    env_file:
-      - envs/.envs.prod
-    depends_on:
-      - mysql_prod
+      dockerfile: docker/Dockerfile.api
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
-
-  streamlit:
-    image: python:3.10-slim
-    container_name: telco_ui_prod
-    working_dir: /app
-    command: ["streamlit", "run", "ui/app.py", "--server.port=8501", "--server.enableCORS=false"]
-    volumes:
-      - .:/app
     depends_on:
-      - api
+      - mysql_prod
+    environment:
+      MYSQL_HOST: mysql_prod
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_DB: telco_db
+
+  telco_ui_prod:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ui
     ports:
       - "8501:8501"
+    depends_on:
+      - telco_api_prod
 
 volumes:
-  mysql_prod_data:
+  mysql_data:
+

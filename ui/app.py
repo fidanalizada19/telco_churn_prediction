@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 
+API_URL = "http://telco_api_prod:8000"
 st.set_page_config(page_title="Telco Churn Predictor", page_icon="📱")
 
 st.title("📞 Telco Churn Prediction App")
