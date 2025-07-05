@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  mysql_test:
+    image: mysql:8.0
+    container_name: mysql_test
+    environment:
+      MYSQL_ROOT_PASSWORD: test_pass
+      MYSQL_DATABASE: telco_db_test
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - telco_net
+
+  api_test:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: telco_api_test
+    ports:
+      - "8001:8000"
+    env_file:
+      - envs/.env.test
+    depends_on:
+      - mysql_test
+    networks:
+      - telco_net
+
+volumes:
+  mysql_test_data:
+
+networks:
+  telco_net:
+
+  streamlit_ui:
+    build:
+      context: .
+      dockerfile: docker/StreamlitDockerfile
+    container_name: streamlit_ui
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api_test
+    networks:
+      - telco_net
